@@ -517,8 +517,113 @@ def dft(world, player):
         count += 1
 
 # def dft_recursion():
+    # if I reach the same node as already in the log then there is no need to backtrack
+        # 121 node
+    # loop pivot node where I can recurse back but not log the nodes
+def dft_recursive_helper(   current_vertex,
+                            visited,
+                            rooms,
+                            log,
+                            looped_vertex,
+                            my_new_exit,
+                            count,
+                            looped_verticies):
 
 
+    # if current_vertex not in self.vertices:
+    #     return
+    # log.append(current_vertex)
+
+    print(count[0], current_vertex)
+    # if count[0] == 358:
+    #     return
+    # if visited_verticies[current_vertex] == 1:
+    #     print(current_vertex, 'has been seen before')
+    #     looped_verticies.add(current_vertex)
+    #     # if current_vertex == 121:
+    #     #     exit()
+
+    # print(rooms[current_vertex].get_exits())
+
+    # if this is false we have an island away from the maze
+    if len(rooms[current_vertex].get_exits()) > 0:
+        # print('here')
+        the_exits = rooms[current_vertex].get_exits()
+        if len(the_exits) == 1:
+            if visited[current_vertex] == 0:
+                # print(current_vertex)
+                visited[current_vertex] = 1
+
+            if the_exits[0] == opposite_directions[my_new_exit]:    
+                # dead end
+                print('dead end')
+            else:
+                print('problem')
+                exit()
+        else:
+            # node is not dead end and never been visited
+            if visited[current_vertex] == 0:
+                # print(current_vertex)
+                visited[current_vertex] = 1
+
+                count[0] += 1
+
+                # going in every possible direction
+                for my_exit in rooms[current_vertex].get_exits():
+
+                    next_room = rooms[current_vertex].get_room_in_direction(my_exit)
+                    # if my_exit != opposite_directions[my_new_exit]:
+                    # log direction and next node
+                    dft_recursive_helper(   next_room.id,
+                                            visited,
+                                            rooms,
+                                            log,
+                                            looped_vertex,
+                                            my_exit,
+                                            count,
+                                            looped_verticies)
+
+                # back at the first time current_vertex was visited
+                # if current_vertex in looped_vertex:
+                #     print(f'we have found the first time {current_vertex} was visited')
+                #     # chop off the log from end to current_vertex
+                #     del looped_vertex[current_vertex]
+                # else:
+                #     print('about to recurse from call stack')
+                    # log (reverse direction from last node on log, current node)
+            # else:
+            #     log.append(current_vertex)
+
+            #     print('node has been visited before')
+                # don't log this node
+                # save value using the reference so it's avaliable to any call
+                # looped_vertex[current_vertex] = 1
+                # print('about to recurse from call stack')
+                # log (reverse direction from last node on log, current node)
+
+            
+
+def dft_recursive(starting_vertex, rooms):
+    """
+    Print each vertex in depth-first order
+    beginning from starting_vertex.
+
+    This should be done using recursion.
+    """
+    pass  # TODO
+
+    # I'm using a helper function so the graph doesn't need to fundamentally
+    # altered for coloring verticies
+    visited = {i: 0 for i in rooms}
+    # starting_vertex is a number
+    # log first node
+    log = []
+    count = [0]
+    looped_verticies = set()
+    dft_recursive_helper(starting_vertex, visited, rooms, log, {}, 'n', count, looped_verticies)
+    print('log count', len(log))
+    print(len([visited[i] for i in visited if visited[i] == 0]))
+    # print(looped_verticies)
 # Load world
 world = World()
 
@@ -527,8 +632,8 @@ world = World()
 # map_file = "maps/test_line.txt"
 # map_file = "maps/test_cross.txt"
 # map_file = "maps/test_loop.txt"
-map_file = "maps/test_loop_fork.txt"
-# map_file = "maps/main_maze.txt"
+# map_file = "maps/test_loop_fork.txt"
+map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -546,7 +651,8 @@ traversal_path = []
 print('player')
 print(player)
 print('done')
-dft(world, player)
+dft_recursive(0, world.rooms)
+# dft(world, player)
 
 
 exit()
