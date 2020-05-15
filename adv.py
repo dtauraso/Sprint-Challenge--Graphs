@@ -12,6 +12,7 @@ from ast import literal_eval
 # int mapping to a cardinal direction so we can get the next direction using ith_neighbor + 1
 cardinal_directions = [ 'n', 's', 'e', 'w' ]
 
+# {0: (id, 'n'), 1: (id, 's'), 2: (id, 'e')}
 opposite_directions = {
     'n': 's',
     's': 'n',
@@ -54,7 +55,10 @@ def dead_end(room, player_path_log):
 
     # only 1 direction possible
     if len(remaining_directions.keys()) == 1:
-        # print(player_path_log[-1])
+        print(player_path_log[-1])
+        # special case where the start node is a dead end
+        if player_path_log[-1][0] == 'start':
+            return False
         # print(opposite_directions[player_path_log[-1][0]])
         # print(remaining_directions)
         # player can only go backwards from where they last came from
@@ -165,7 +169,7 @@ def bfs(world, my_map, player_path_log):
     # we are traveling already visited rooms and ending when we have an unvisited room
     while len(find_unvisited_rooms(room, current_node[1], world)) == 0:#current_node != destination_vertex:
 
-        # if count == 4:
+        # if count == 5:
         #     print('done backtracking')
         #     exit()
         print(count, len(find_unvisited_rooms(room, current_node[1], world)))
@@ -176,7 +180,7 @@ def bfs(world, my_map, player_path_log):
         if current_node is None:
             break
         if visited[ current_node[1] ] == 0:
-            # print(current_node)
+            print(current_node, 'just got visited')
 
             visited[ current_node[1] ] = 1
             # print('current node\'s directions')
@@ -187,82 +191,144 @@ def bfs(world, my_map, player_path_log):
             # add them to the queue second
 
             # TODO:
+            unvisited_rooms = []
             # need to know the room has at least 1 unvisited direction that exists
-            # if it does
-                # our search is done
-            # the path is from the player's current room to the room with at least 1 unvisited direction
-
             for direction in my_map[ current_node[1] ]:
-                print(direction, my_map[ current_node[1] ][direction])
                 # if my_map[ current_node[1] ][direction] is not None:
                     
                 # The direction must point to a room that exists for it to be considered
-                if my_map[ current_node[1] ][direction] is not None:
-                    
-                    # unvisited room doesn't exist
-                    # eliminates the '?' that don't point to anywhere
+                # if my_map[ current_node[1] ][direction] is not None:
+
+                if my_map[ current_node[1] ][direction] == '?':
                     room = my_map[ current_node[1] ]
 
-                    # print('room direction', current_node[1], room, direction)
-                    # print(my_map[ room[direction] ], room[direction])
-                    # unvisited_room_exists(direction, room, room_id, world)
-                    # print(direction, 'direction id', my_map[ current_node[1] ][direction])
-                    # room is unvisited
-                    if my_map[ current_node[1] ][direction] == '?':
+                    if unvisited_room_exists(direction, room, current_node[1], world):
+                        unvisited_rooms.append((direction, my_map[ current_node[1] ][direction] ))
+            if len(unvisited_rooms) > 0:
+                print('we are done', current_node)
+                print(unvisited_rooms)
+                [print(i, parents[i]) for i in parents]
+                # get the parent
+                my_parent_id = my_map[  current_node[1]] [ opposite_directions[ current_node[0] ] ]
+                print('the parent', opposite_directions[ current_node[0] ], my_parent_id)
 
-                        # the unvisited room exists(these are not checked in the loop guard)
-                        # the assumption was to check the neighbors of the 
-                        # maybe adding nodes to the queue that aren't in the map yet is reaching too far
-                        print('unvisited node')
-                        if not unvisited_room_exists(direction, room, current_node[1], world):
-                            my_map[ current_node[1] ][direction] = None
-                            # print('got here')
-                            # # (opposite_directions[ player_path_log[-1][0] ], player_path_log[-1][1] )
-                            # # use my_map or world.rooms?
-                            # # we are going to a known room or a n unknown room
-                            # # get_room_directions(room, direction)
-                            # room = world.rooms[ current_node[1] ]
+                parents[ my_parent_id ] = [ current_node[0] , current_node[1] ]
 
-                            # my_queue.enqueue((direction, get_room_directions(room, direction)  ))
+                # , my_map[ current_node[1] ], direction)
+                # if my_map[ current_node[1] ][direction] != '?':
+                #     print('adding to parent array', [ direction, my_map[ current_node[1] ][direction] ], '->', current_node[1])
+                #     parents[ current_node[1] ] = [ direction, my_map[ current_node[1] ][direction] ]
+                break
+                # current_node is the end node
+                # exit()
+            # there are no unvisited rooms adjacient to the current room
+            else:
+                for direction in my_map[ current_node[1] ]:
+
+                    # the only rooms left are None, '?' that are dead ends and rooms that exist
+                    if my_map[ current_node[1] ][direction] is not None:
+
+                        # '?' that are dead end rooms
+                        if my_map[ current_node[1] ][direction] == '?':
+                            room = my_map[ current_node[1] ]
                             
-                            # # don't create a circular parent path
-                            # if visited[ current_node[1] ] == 0:
-
-                            #     parents[ current_node[1] ] = [ direction, world.rooms[ current_node[1] ][direction] ]
-
-                        # unvisited room exists
+                            # must be the part setting all the edges that don't go anywhere to None
+                            # have to check this as we are visiting the same neighbors again
+                            if not unvisited_room_exists(direction, room, current_node[1], world):
+                                my_map[ current_node[1] ][direction] = None
+                        # rooms that exist
                         else:
-                            print('we have a new node to visit', direction)
-                            print('player\'s current room', player_path_log[-1][1])
-                            print('finishing backtracking')
-                            print(parents)
-                            [print(i, parents[i]) for i in parents]
-                            tracker = [opposite_directions[ player_path_log[-1][0] ], player_path_log[-1][1] ]
-                            print(tracker)
-                            search_path = []
-                            already_found = set()
-                            while len(tracker) > 0 and tracker[1] > -1 and tracker[1] not in already_found:
-                                search_path = [*search_path, tracker]
-                                already_found.add(tracker[1])
-                                tracker = parents[tracker[1]]
-                                print(tracker)
+                            # don't add a room we have to do backwards to see
+                            # if visited[ current_node[1] ] == 0:
+                            # don't enque going backwards
+                            if opposite_directions[ current_node[0] ] != direction:
+                                print('adding new rooms, current node', current_node)
+                                print(direction, my_map[ current_node[1] ][direction], visited[ current_node[1] ])
 
-                            # break
-                        #     my_map[ current_node[1] ][direction] = None
-                    # room has been visited
-                    elif my_map[ current_node[1] ][direction] > -1:
-                        print('got here')
-                        # get_room_directions(room, direction)
-                        # room = world.rooms[ current_node[1] ]
-                        # room[ get_room_directions(room, direction) ]
-                        # adding the room object instead of the room id
-                        my_queue.enqueue((direction, my_map[ current_node[1] ][direction] ))
-                        # print('visited', visited[ current_node[1] ])
-                        # don't create a circular parent path
-                        # if visited[ current_node[1] ] == 0:
+                                my_queue.enqueue((direction, my_map[ current_node[1] ][direction] ))
 
-                        parents[ current_node[1] ] = [ direction, my_map[ current_node[1] ][direction] ]
-            print(count, len(find_unvisited_rooms(room, current_node[1], world)))
+                                parents[ current_node[1] ] = [ direction, my_map[ current_node[1] ][direction] ]
+
+
+
+
+            # if it does
+                # our search is done
+            # else
+                # get it's neighbors and add them to the queue
+            # the path is from the player's current room to the room with at least 1 unvisited direction
+
+            # for direction in my_map[ current_node[1] ]:
+            #     print(direction, my_map[ current_node[1] ][direction])
+            #     # if my_map[ current_node[1] ][direction] is not None:
+                    
+            #     # The direction must point to a room that exists for it to be considered
+            #     if my_map[ current_node[1] ][direction] is not None:
+                    
+            #         # unvisited room doesn't exist
+            #         # eliminates the '?' that don't point to anywhere
+            #         room = my_map[ current_node[1] ]
+
+            #         # print('room direction', current_node[1], room, direction)
+            #         # print(my_map[ room[direction] ], room[direction])
+            #         # unvisited_room_exists(direction, room, room_id, world)
+            #         # print(direction, 'direction id', my_map[ current_node[1] ][direction])
+            #         # room is unvisited
+            #         if my_map[ current_node[1] ][direction] == '?':
+
+            #             # the unvisited room exists(these are not checked in the loop guard)
+            #             # the assumption was to check the neighbors of the 
+            #             # maybe adding nodes to the queue that aren't in the map yet is reaching too far
+            #             print('unvisited node')
+            #             if not unvisited_room_exists(direction, room, current_node[1], world):
+            #                 my_map[ current_node[1] ][direction] = None
+            #                 # print('got here')
+            #                 # # (opposite_directions[ player_path_log[-1][0] ], player_path_log[-1][1] )
+            #                 # # use my_map or world.rooms?
+            #                 # # we are going to a known room or a n unknown room
+            #                 # # get_room_directions(room, direction)
+            #                 # room = world.rooms[ current_node[1] ]
+
+            #                 # my_queue.enqueue((direction, get_room_directions(room, direction)  ))
+                            
+            #                 # # don't create a circular parent path
+            #                 # if visited[ current_node[1] ] == 0:
+
+            #                 #     parents[ current_node[1] ] = [ direction, world.rooms[ current_node[1] ][direction] ]
+
+            #             # unvisited room exists
+            #             else:
+            #                 print('we have a new node to visit', direction)
+            #                 print('player\'s current room', player_path_log[-1][1])
+            #                 print('finishing backtracking')
+            #                 print(parents)
+            #                 [print(i, parents[i]) for i in parents]
+            #                 tracker = [opposite_directions[ player_path_log[-1][0] ], player_path_log[-1][1] ]
+            #                 print(tracker)
+            #                 search_path = []
+            #                 already_found = set()
+            #                 while len(tracker) > 0 and tracker[1] > -1 and tracker[1] not in already_found:
+            #                     search_path = [*search_path, tracker]
+            #                     already_found.add(tracker[1])
+            #                     tracker = parents[tracker[1]]
+            #                     print(tracker)
+
+            #                 # break
+            #             #     my_map[ current_node[1] ][direction] = None
+            #         # room has been visited
+            #         elif my_map[ current_node[1] ][direction] > -1:
+            #             print('got here')
+            #             # get_room_directions(room, direction)
+            #             # room = world.rooms[ current_node[1] ]
+            #             # room[ get_room_directions(room, direction) ]
+            #             # adding the room object instead of the room id
+            #             my_queue.enqueue((direction, my_map[ current_node[1] ][direction] ))
+            #             # print('visited', visited[ current_node[1] ])
+            #             # don't create a circular parent path
+            #             # if visited[ current_node[1] ] == 0:
+
+            #             parents[ current_node[1] ] = [ direction, my_map[ current_node[1] ][direction] ]
+            # print(count, len(find_unvisited_rooms(room, current_node[1], world)))
 
 
         count += 1
@@ -308,10 +374,13 @@ def dft(world, player):
     # print(not(my_stack.size() == 0) or current['current'] in graph_for_stack)
     # (current is not none) and (we have a stck or node is in graph)
     # stop when we have visited all nodes or when count is large enough
+    # TODO: this loop condition has been the only problem left but there is something else wrong with the large maze
+
     # while (current is not None) and (not(my_stack.size() == 0) or current['current'] in graph_for_stack):
     while len([visited[room] for room in visited if visited[room] == 0]) > 0:
 
-        if count == 20:
+        print('total traversal distance', len(player_path_log))
+        if count == 70:
             print('loop has reached it\'s limit')
             return
         print('current count', count)
@@ -352,6 +421,7 @@ def dft(world, player):
             [print(i[0], i[1].id) for i in unvisited_rooms if i[1] is not None]
             # can we have a room with all visited nodes but you have to backtrack
             # from this point in time?
+            # rooms is at interection of a loop but all it's neighbors have been visited
             if len(unvisited_rooms) > 0:
                 # assume these unvisited rooms exist 
                 # print('rooms to visit')
@@ -390,6 +460,13 @@ def dft(world, player):
                 # [print(i) for i in player_path_log]
                 # print()
                     # exit()
+            else:
+                print('our room has been already visited on all sides')
+                # our room is already in the log so we get the penultimate node logged
+                print(player_path_log[-2])
+                # connect current room with prev
+                # use bft to find the next
+                exit()
             # else:
             #     # we cannot move forward any more
             #     # the player cannot go forward in any other direction so set all the rest of the unexplored paths to None
@@ -414,7 +491,7 @@ def dft(world, player):
             # do bfs in the opposite direction
             print('backtrack')
             # if last logged node has been logged before
-            
+            # seems to be working
             backtracking_path = bfs(world, my_map, player_path_log)
             print(backtracking_path)
             [print(i, my_map[i]) for i in my_map]
@@ -439,6 +516,9 @@ def dft(world, player):
             #         current['current'] = graph_for_stack[ current['current'] ][ current['ith_neighbor'] ]
         count += 1
 
+# def dft_recursion():
+
+
 # Load world
 world = World()
 
@@ -462,7 +542,7 @@ player = Player(world.starting_room)
 # Fill this out with directions to walk
 # traversal_path = ['n', 'n']
 traversal_path = []
-
+# exit()
 print('player')
 print(player)
 print('done')
