@@ -9,3 +9,5 @@ class Player:
                 next_room.print_room_description(self)
         else:
             print("You cannot move in that direction.")
+    def __str__(self):
+        return self.current_room.__str__()
