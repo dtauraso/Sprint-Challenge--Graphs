@@ -532,9 +532,9 @@ def dft_recursive_helper(   current_vertex,
 
     # if current_vertex not in self.vertices:
     #     return
-    # log.append(current_vertex)
+    log.append([my_new_exit + ' f', current_vertex])
 
-    print(count[0], current_vertex)
+    # print(count[0], current_vertex)
     # if count[0] == 358:
     #     return
     # if visited_verticies[current_vertex] == 1:
@@ -554,12 +554,12 @@ def dft_recursive_helper(   current_vertex,
                 # print(current_vertex)
                 visited[current_vertex] = 1
 
-            if the_exits[0] == opposite_directions[my_new_exit]:    
-                # dead end
-                print('dead end')
-            else:
-                print('problem')
-                exit()
+            # if the_exits[0] == opposite_directions[my_new_exit]:    
+            #     # dead end
+            #     print('dead end')
+            # else:
+            #     print('problem')
+            #     exit()
         else:
             # node is not dead end and never been visited
             if visited[current_vertex] == 0:
@@ -571,17 +571,22 @@ def dft_recursive_helper(   current_vertex,
                 # going in every possible direction
                 for my_exit in rooms[current_vertex].get_exits():
 
+                    # log.append([my_new_exit, current_vertex])
+
                     next_room = rooms[current_vertex].get_room_in_direction(my_exit)
-                    # if my_exit != opposite_directions[my_new_exit]:
-                    # log direction and next node
-                    dft_recursive_helper(   next_room.id,
-                                            visited,
-                                            rooms,
-                                            log,
-                                            looped_vertex,
-                                            my_exit,
-                                            count,
-                                            looped_verticies)
+                    # print(my_exit )
+                    if visited[next_room.id] == 0:
+                        # if my_exit != opposite_directions[my_new_exit]:
+                        # log direction and next node
+                        dft_recursive_helper(   next_room.id,
+                                                visited,
+                                                rooms,
+                                                log,
+                                                looped_vertex,
+                                                my_exit,
+                                                count,
+                                                looped_verticies)
+                        log.append([opposite_directions[my_exit] + ' b', current_vertex])
 
                 # back at the first time current_vertex was visited
                 # if current_vertex in looped_vertex:
@@ -621,8 +626,29 @@ def dft_recursive(starting_vertex, rooms):
     count = [0]
     looped_verticies = set()
     dft_recursive_helper(starting_vertex, visited, rooms, log, {}, 'n', count, looped_verticies)
-    print('log count', len(log))
-    print(len([visited[i] for i in visited if visited[i] == 0]))
+    # print('log count', len(log))
+    # print(len([visited[i] for i in visited if visited[i] == 0]))
+    all_items = {i: 1 for i in visited}
+    for item in log:
+        if item[1] in all_items:
+            del all_items[item[1]]
+    
+    # print(len(all_items.keys()))
+
+    log_visited = {i: 0 for i in rooms}
+    # print(log)
+    # print(len(log))
+    return log
+    # the next node appears to be right but the direction is wrong
+    # direction = log[1][0]
+
+    # tracker = log[0][1]
+    # for i, item in enumerate(log[1:]):
+    #     expected_room_id = item[1]
+
+    #     tracker = rooms[tracker].get_room_in_direction(direction)
+    #     if tracker == expected_room_id:
+    #         if i + 1
     # print(looped_verticies)
 # Load world
 world = World()
@@ -651,11 +677,11 @@ traversal_path = []
 print('player')
 print(player)
 print('done')
-dft_recursive(0, world.rooms)
+log = dft_recursive(0, world.rooms)
 # dft(world, player)
+traversal_path = [item[0].split(' ')[0] for item in log ]
 
-
-exit()
+# exit()
 # TRAVERSAL TEST - DO NOT MODIFY
 visited_rooms = set()
 player.current_room = world.starting_room
